@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+match /databases/{database}/documents {
+match /income/{docId} {
+allow create: if request.auth != null && request.auth.uid == request.resource.data.uid;
+allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.uid;
+}
+match /expenses/{docId} {
+allow create: if request.auth != null && request.auth.uid == request.resource.data.uid;
+allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.uid;
+}
+match /budgets/{docId} {
+	allow create: if request.auth != null && request.auth.uid == request.resource.data.uid;
+	// Allow read/update/delete when the document's `uid` matches the authenticated user
+	// or when the incoming request data contains a `uid` that matches (handles
+	// merge/updates to documents that may be missing `uid`).
+	allow read, update, delete: if request.auth != null && (
+		resource.data.uid == request.auth.uid || request.resource.data.uid == request.auth.uid
+	);
+}
+
+		match /users/{docId} {
+			// Allow creating a user document only for the authenticated uid matching the doc id
+			allow create: if request.auth != null && docId == request.auth.uid;
+			// Allow read/update/delete only for the owner (doc id equals authenticated uid)
+			allow read, update, delete: if request.auth != null && docId == request.auth.uid;
+		}
+match /{document=**} { allow read, write: if false; }
+}
+}
